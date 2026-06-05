@@ -1,16 +1,8 @@
 # Project 1 Planning: The Unofficial Guide
-
-> Write this document before you write any pipeline code.
-> Your spec and architecture diagram are what you'll use to direct AI tools (Claude, Copilot, etc.) to generate your implementation — the more specific they are, the more useful the generated code will be.
-> Update the Retrieval Approach and Chunking Strategy sections if you change your approach during implementation.
-> Update this file before starting any stretch features.
-
 ---
 
 ## Domain
-
-<!-- What domain did you choose? Why is this knowledge valuable and hard to find through official channels? -->
-
+     This Unofficial Guide will focus on student-generated knowledge about Vassar CS inquiries and experiences. This knowledge is valuable because students have a centralized place to ask questions and share information about courses, professors, and workloads. By building a RAG system that can retrieve and generate responses based on this student-generated content, we can provide prospective and current students with insights that are grounded in real experiences, helping them make informed decisions about their course selections and academic or career paths. 
 ---
 
 ## Documents
@@ -18,105 +10,72 @@
 <!-- List your specific sources: URLs, subreddit names, forum threads, or file descriptions.
      Aim for at least 10 sources that together cover different subtopics or perspectives within your domain. -->
 
-| # | Source | Description | URL or location |
-|---|--------|-------------|-----------------|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
-| 5 | | | |
-| 6 | | | |
-| 7 | | | |
-| 8 | | | |
-| 9 | | | |
-| 10 | | | |
+| #  | Source            | Description                                                                                          | URL or location                                                                                                |
+| -- | ----------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 1  | Rate My Professor | Student reviews of Jacob Erickson (CMPU 101, CMPU 241)                                               | https://www.ratemyprofessors.com/professor/3061766
+| 2  | Rate My Professor | Student reviews of Peter Lemieszewski (CMPU 102)                                                     | https://www.ratemyprofessors.com/professor/2077804
+| 3  | Rate My Professor | Student reviews of Anna Gommerstadt (CMPU 145)                                                       | https://www.ratemyprofessors.com/professor/2649423
+| 4  | Rate My Professor | Student reviews of Rui Meireles (CMPU 203)                                                           | https://www.ratemyprofessors.com/professor/2308938
+| 5  | Rate My Professor | Student reviews of Jason Waterman (CMPU 224)                                                         | https://www.ratemyprofessors.com/professor/2102591
+| 6  | Rate My Professor | Student reviews of Jonathan Gordon (CMPU 240)                                                        | https://www.ratemyprofessors.com/professor/2422801                                             |
+| 7  | Miscellany News   | Student review article on CMPU 145 Foundations of CS                                                 | https://miscellanynews.org/2023/11/29/features/student-reviews-foundations-of-computer-science/  |
+| 8  | Reddit r/vassar   | CS four-year course plan thread — students discussing course sequencing including CMPU 101, 102, 145 | https://www.reddit.com/r/vassar/comments/98tpux/computer_science_four_year_course_plan/                  |
+| 9  | Reddit r/vassar   | Reddit Thread - Studying Computer Science in Vassar          | https://www.reddit.com/r/vassar/comments/1bssjrb/studying_computer_science_in_vassar/                                                               |
+| 10 | Reddit r/vassar   | Reddit Thread - Computer Science   | https://www.reddit.com/r/vassar/comments/ftpgej/computer_science/                                                                        |
 
 ---
 
 ## Chunking Strategy
 
-<!-- How will you split documents into chunks?
-     State your chunk size (in tokens or characters), overlap size, and explain why those
-     numbers fit the structure of your documents.
-     A review-heavy corpus warrants different chunking than a long FAQ. -->
+**Chunking strategy:** Boundary Aware Fixed-Size Chunking
 
-**Chunk size:**
+**Chunk size:** 300 tokens 
 
-**Overlap:**
+**Overlap:** 50 tokens 
 
-**Reasoning:**
-
+**Reasoning:** Given that these documents consist of student reviews and discussions, which can vary in length and structure, a boundary-aware fixed-size chunking strategy allows us to preserve coherent units of information while ensuring that chunks are manageable for retrieval and generation. For RMP Reviews, it's document is first split into review boundaries using a consistent delimiter,"-0", preserving each review as a single chunk. For the Reddit thread comments and the Miscellany News article, we will also apply fixed-size chunking with a chunk size of 300 tokens and an overlap of 50 tokens but omitting the delimiters since these documents only contain a single coherent section. This approach allows us to capture the full sentiment and details of each review or discussion while still ensuring that chunks are manageable for retrieval and generation. The overlap of 50 tokens helps to mitigate the risk of splitting key information across chunk boundaries, which can be particularly important for reviews that may contain important context or sentiment that spans multiple sentences.
 ---
 
 ## Retrieval Approach
 
-<!-- Which embedding model are you using (e.g., all-MiniLM-L6-v2 via sentence-transformers)?
-     How many chunks will you retrieve per query (top-k)?
-     If you were deploying this for real users and cost wasn't a constraint, what tradeoffs
-     would you weigh in choosing a different embedding model — context length, multilingual
-     support, accuracy on domain-specific text, latency? -->
+**Embedding model:** `all-MiniLM-L6-v2` via sentence-transformers
 
-**Embedding model:**
+**Top-k:** k=5
 
-**Top-k:**
-
-**Production tradeoff reflection:**
+**Production tradeoff reflection:** Using `all-MiniLM-L6-v2` works just fine as it's a general purpose embedding model for simplicity and relatively short context. So, if I'm working on a review-heavy corpus that won't need too much context, this model works just fine. However, if I were to start embedding more document-heavy material like elaborate blogs, articles, etc. I should consider using models that are specifically designed for longer contexts, such as `jina-embeddings-v2-base-en` (Jina) or `nomic-embed-text-v1.5` (Nomic AI), which can capture more nuanced information from longer documents. Additionally, if I were to expand my domain to include multilingual content, I would need to consider embedding models that support multiple languages effectively. In terms of accuracy on domain-specific text, if my corpus contains a lot of technical jargon or specific terminology, I might want to explore embedding models that are fine-tuned on similar domains to ensure better performance. 
 
 ---
 
 ## Evaluation Plan
 
-<!-- List your 5 test questions with their expected correct answers.
-     Questions should be specific enough that you can judge whether the system's response
-     is right or wrong. "What are good dining halls?" is too vague.
-     "What do students say about wait times at [dining hall name] during lunch?" is testable. -->
-
 | # | Question | Expected answer |
 |---|----------|-----------------|
-| 1 | | |
-| 2 | | |
-| 3 | | |
-| 4 | | |
-| 5 | | |
+| 1 | Are Professor Hannah's lectures well-received by students? | Personal experience + RMP |
+| 2 | How is Professor Erickson perceived by students? | Personal experience + RMP |
+| 3 | What can I expect from CMPU 145? | Personal experience + Misc |
+| 4 | What do students say about the difficulty of CMPU 203 with Meireles? | RMP |
+| 5 | Which of these courses has the most project-heavy workload? | Personal experience + RMP |
 
 ---
 
 ## Anticipated Challenges
 
-<!-- What could go wrong? Name at least two specific risks with reasoning.
-     Consider: noisy or inconsistent documents, missing source attribution, off-topic
-     retrieval, chunks that split key information across boundaries. -->
+1. Noisy or inconsistent documents: Given that the source documents are student-generated reviews and discussions, there is a risk of encountering noisy or inconsistent information. For example, some reviews may contain irrelevant details, personal biases, or conflicting opinions that could affect the quality of retrieved information and generated responses. To mitigate this risk, we can implement a filtering mechanism during the chunking stage to remove irrelevant content and ensure that only coherent and relevant chunks are stored in the vector database.
 
-1.
-
-2.
-
+2. Inadequate source attribution: Since the system relies on retrieved chunks to generate responses, there is a risk that the model may not properly attribute sources or may generate responses that are not fully grounded in the retrieved context. This could lead to misinformation or insufficient responses. To address this challenge temporarily, we can fallback and tell the user that there is insufficient information to answer the question, and in the long term, we can implement a more robust source attribution mechanism that ensures all generated responses are properly grounded in the retrieved chunks and that sources are clearly cited in the response. Though, this will require a bit of advertising for people to submit more reviews and discussions to the corpus so that there is more information for the system to work with, which is a challenge in itself.
 ---
 
 ## Architecture
 
-<!-- Draw a diagram of your pipeline showing the five stages:
-     Document Ingestion → Chunking → Embedding + Vector Store → Retrieval → Generation
-     Label each stage with the tool or library you're using.
-     You can use ASCII art, a Mermaid diagram, or embed a sketch as an image.
-     You'll use this diagram as context when prompting AI tools to implement each stage. -->
-
----
+**refer to rag-pipeline-diagram.mmd for the architecture diagram written in mermaid.js.**
 
 ## AI Tool Plan
 
-<!-- For each part of the pipeline below, describe:
-     - Which AI tool you plan to use (Claude, Copilot, ChatGPT, etc.)
-     - What you'll give it as input (which sections of this planning.md, which requirements)
-     - What you expect it to produce
-     - How you'll verify the output matches your spec
-
-     "I'll use AI to help me code" is not a plan.
-     "I'll give Claude my Chunking Strategy section and ask it to implement chunk_text()
-     with my specified chunk size and overlap" is a plan. -->
-
 **Milestone 3 — Ingestion and chunking:**
+          For this milestone, Claude will be used for code generation and Copilot for code suggestions and completion. I will provide the Chunking Strategy section of this planning document, along with specific requirements for chunk size and overlap. I expect it to produce a function `chunk_text()` that takes in raw text and outputs a list of chunks based on the specified chunk size and overlap, while also being boundary-aware for the RMP reviews. To verify the output, the `chunk_text()` function will be tested on sample documents from my corpus, ensuring that the chunks are of the correct size, have the appropriate overlap, and that the RMP reviews are chunked according to their boundaries without splitting key information across chunks. A test file will be created first to validate the functionality of the chunking process, and I will check the output against expected results based on the input documents.
 
 **Milestone 4 — Embedding and retrieval:**
+          For this milestone, Claude will be used for code generation and Copilot for code suggestions and completion. I will provide the Embedding and Retrieval Strategy sections of this planning document, along with specific requirements for the embedding model and vector store. I expect it to produce functions, `embed_text()` that takes in text and returns its embedding using the specified model, and a function `retrieve_chunks()` that takes in a query and retrieves the top-k relevant chunks from the vector store based on cosine similarity. The output will be verified by testing the embedding function on sample documents and ensuring that the vectors are generated correctly. I will also test the retrieval function by querying the vector store with sample queries and checking that the retrieved chunks are relevant and accurate.
 
 **Milestone 5 — Generation and interface:**
+          For this milestone, Claude will be used for code generation and Copilot for code suggestions and completion. I will first sketch out the interface and lay out the details on how the LLM should answer a user's query, which will all be documented on a planning document similar to this one as there is no specific section for interface design in this document. Then, that document will be given as context to CLaude. I expect it to produce a function `generate_response()` that takes in a user query and the retrieved chunks as context, and generates a response using the specified LLM while adhering to the system prompt constraints. Additionally, I expect it to produce code for the Gradio interface that includes a search bar for user input, a response pane for displaying the model's answer with inline citations, and source cards for listing retrieved documents with metadata. The output will be verified by testing the generation function with sample queries and ensuring that the responses are accurate, properly grounded in the retrieved context, and include correct source attribution. The interface will be tested using playwright to simulate user interactions and verify that the components function as expected, allowing users to submit queries and view responses without any navigation issues.
