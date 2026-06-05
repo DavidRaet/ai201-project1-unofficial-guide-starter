@@ -1,0 +1,66 @@
+flowchart TD
+
+    %% ── Source Documents ──────────────────────────────────────────────
+    SRC1([Rate My Professor\nReviews])
+    SRC2([Reddit r/vassar\nThreads])
+    SRC3([Miscellany News\nArticles])
+
+    SRC1 & SRC2 & SRC3 --> ING
+
+    %% ── Stage 1: Document Ingestion ───────────────────────────────────
+    subgraph ING["① Document Ingestion"]
+        direction TB
+        I1[Load raw documents]
+        I2["Clean: strip ads, nav text,\nupvote counts, markup"]
+        I3["Attach metadata per doc:\nsource · professor_name\ncourse_code · raw_url\napproximate_year"]
+        I1 --> I2 --> I3
+    end
+
+    ING --> CHK
+
+    %% ── Stage 2: Chunking ─────────────────────────────────────────────
+    subgraph CHK["② Chunking  (LangChain RecursiveCharacterTextSplitter)"]
+        direction TB
+        C1{Source type?}
+        C2["RMP reviews\nSplit at '-0' review boundaries\n→ one chunk per review"]
+        C3["Reddit & Miscellany\nFixed-size: 300 tokens\nOverlap: 50 tokens"]
+        C4[No mid-sentence splits\nParagraph/review boundary preferred]
+        C1 -- RMP --> C2
+        C1 -- Reddit / Miscellany --> C3
+        C2 & C3 --> C4
+    end
+
+    CHK --> EMB
+
+    %% ── Stage 3: Embedding + Vector Store ─────────────────────────────
+    subgraph EMB["③ Embedding + Vector Store"]
+        direction TB
+        E1["Embed each chunk\nall-MiniLM-L6-v2\n(sentence-transformers, local)"]
+        E2["Store vectors + metadata\nChromaDB  —  local persistent\n(chroma_db/, gitignored)"]
+        E1 --> E2
+    end
+
+    %% ── Stage 4: Retrieval ────────────────────────────────────────────
+    Q([User Query]) --> RET
+    EMB --> RET
+
+    subgraph RET["④ Retrieval"]
+        direction TB
+        R1["Embed query\nall-MiniLM-L6-v2"]
+        R2["Cosine similarity search\nChromaDB"]
+        R3["Return top-k chunks\nk = 5"]
+        R1 --> R2 --> R3
+    end
+
+    RET --> GEN
+
+    %% ── Stage 5: Grounded Generation ──────────────────────────────────
+    subgraph GEN["⑤ Grounded Generation  (Groq)"]
+        direction TB
+        G1["System prompt:\nAnswer ONLY from retrieved context.\nIf no context → exact refusal string."]
+        G2["LLM: llama-3.3-70b-versatile\nvia Groq free tier"]
+        G3["Response:\nSynthesized answer\n+ inline citations\n+ source list"]
+        G1 --> G2 --> G3
+    end
+
+    GEN --> UI([Gradio Interface\nSearch bar · Response pane · Source cards])
