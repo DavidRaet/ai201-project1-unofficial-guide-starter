@@ -9,6 +9,13 @@ CHUNKS_PATH = DATA_DIR / "chunks.json"
 CHUNK_SIZE = 256    # WordPiece tokens — all-MiniLM-L6-v2 max sequence length
 CHUNK_OVERLAP = 50  # token overlap between consecutive chunks
 
+CHROMA_DIR      = BASE_DIR / "chroma_db"
+COLLECTION_NAME = "vassar_cs_unofficial_guide"
+TOP_K           = 5
+
+GROQ_MODEL     = "llama-3.3-70b-versatile"
+REFUSAL_STRING = "I don't have enough student-sourced information to answer that question reliably."
+
 # Per-file metadata. Keys that vary per review (course_code, approximate_year)
 # are absent here for rmp sources — parsed from each review block instead.
 DOCUMENT_METADATA: dict[str, dict] = {
