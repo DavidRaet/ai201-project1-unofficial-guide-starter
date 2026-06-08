@@ -259,8 +259,11 @@ If time allowed, I would try to personally survey more students who have took CM
      Answer both questions with at least 2–3 sentences each. -->
 
 **One way the spec helped you during implementation:**
+
 The spec has helped me ideate on the minute details on how I would implement each stage of the RAG Pipeline. For example, what kind of chunking strategy would I use given the documents I'm ingesting or the tradeoffs of using one embedding model. Essentially, the spec has given me a foundation on where to work with.
+
 **One way your implementation diverged from the spec, and why:**
+
 Once implementation set in, I initially had a Boundary Aware Fixed-Sized Chunking strategy but because I eventually realized that the documents that I was extracting had all inconsistent and informal formats, we could not rely on this approach to safely predict boundaries. Therefore, the Recursive Splitting approach was used in place to handle the documents, in many cases sentiments and reviews.
 ---
 
