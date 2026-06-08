@@ -191,11 +191,17 @@ REFUSAL RULE: If the provided sources do not contain enough information to answe
 
 **How source attribution is surfaced in the response:**
 e.g
+
 Sources:
+
 [Source 1]
+
 [Source 2]
+
 [Source 3]
+
 [Source 4]
+
 [Source 5]
 
 ---
@@ -291,11 +297,17 @@ Retrieval Test Examples:
 
 Example 1:
 'Are Professor Anna's lectures for CMPU145 well-received by students?'
+
   [1] (dist=0.3654) [Anna Gommerstadt] CMPU-145 - Comment #1: Anna's teaching/lecture style is effective and fun. Enoug...
+  
   [2] (dist=0.4431) [Anna Gommerstadt] CMPU-145- Comment #5: Had her for both 102 and 145, and she gives very engaging ...
+  
   [3] (dist=0.4619) [Jacob Erickson] CMPU-241 - Comment #3: Effective, engaging lectures and available to answer ques...
+  
   [4] (dist=0.5087) [Anna Gommerstadt] and my enjoyment of the lectures kept me on track with the course’s workload. He...
+  
   [5] (dist=0.5165) [Rui Meireles] CMPU-203 - Comment #2: Rui comes off as shy but he is very sweet and helpful. Le...
+  
 
 
 Chunks 1, 2, and 4 are directly sourced from Anna Gommerstadt's RMP reviews and the Miscellany article have both explicitly mentioned her lecture style for CMPU-145, which maps tightly to the query. Chunk 3 for example, (Erickson) surfaced likely because it shares the word "lectures" and similar positive phrasing, making it a false positive at the embedding level. The retrieval is largely on-target, with two off-topic results out of five.
@@ -303,21 +315,32 @@ Chunks 1, 2, and 4 are directly sourced from Anna Gommerstadt's RMP reviews and 
 Example 2:
 
 'How is Professor Erickson perceived by students?'
+
   [1] (dist=0.2799) [Jacob Erickson] CMPU-101- Comment #4: Professor Erickson is highly knowledgeable and manages the...
+  
   [2] (dist=0.5005) [Jacob Erickson] CMPU-241 - Comment #3: Effective, engaging lectures and available to answer ques...
+  
   [3] (dist=0.5071) [Peter Lemieszewski] CMPU-102 - Comment #2 : Peter is an amazing human being. He always came to class...
+  
   [4] (dist=0.5147) [Peter Lemieszewski] CMPU-102 - Comment #3 : Peter is an amazing guy. He is very hard working and ver...
+  
   [5] (dist=0.5189) [Peter Lemieszewski] CMPU102 - Comment #7 : Pete is a super nice and accessible professor. But he is ...
+  
 
 Chunks 1 and 2 are directly from Erickson's RMP reviews and rank closest by cosine distance (0.28 and 0.50), confirming the embedding model correctly prioritized the named professor. Chunks 3, 4, and 5 are all Peter Lemieszewski reviews, which were retrieved likely because they share structural and tonal similarity to Erickson reviews (short, professor-focused, positive sentiment). This shows the model retrieved by semantic pattern as much as by named entity, which is a limitation worth noting.
 
 
 Example 3:
 What do students say about the difficulty of CMPU 203 with Meireles?
+
   [1] (dist=0.5931) [Peter Lemieszewski] CMPU-102 - Comment #9 : Not helpful at all...
+  
   [2] (dist=0.5937) [Rui Meireles] CMPU-203 - Comment #4: 10/10. A work-heavy course, but Meireles is an excellent ...
+  
   [3] (dist=0.6522) [Peter Lemieszewski] CMPU-102 - Comment #5: Very helpful outside of class but be prepared to do extra...
+  
   [4] (dist=0.6589) [Peter Lemieszewski] CMPU102 - Comment #6: Very little homework. Easy grader. Absolutely useless lect...
+  
   [5] (dist=0.6649) [Jonathan Gordon] CMPU-240 - Comment #2: Really really bad. I don't understand why some people dec...
 
 
