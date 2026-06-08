@@ -9,7 +9,7 @@
      Example: "Student reviews of CS professors at [university] — useful because official
      course descriptions don't reflect teaching style, exam difficulty, or workload." -->
 
-     This Unofficial Guide will focus on student-generated knowledge about Vassar CS courses and professors. This knowledge is valuable because official course listings describe content but do not describe teaching style, grading philosophy, workload distribution, or which course combinations are dangerous. This system fills that gap.
+     This Unofficial Guide will focus on student-generated knowledge about Vassar CS courses and professors. This knowledge is valuable because official course listings describe content but do not describe teaching style, grading philosophy, workload distribution, or which course combinations are dangerous. This system aims to centralize that information.
      
 ---
 
