@@ -27,13 +27,13 @@
 
 ## Chunking Strategy
 
-**Chunking strategy:** Boundary Aware Fixed-Size Chunking
+**Chunking strategy:** Separator-Aware Recursive Splitting
 
-**Chunk size:** 300 tokens 
+**Chunk size:** 256 tokens 
 
 **Overlap:** 50 tokens 
 
-**Reasoning:** Given that these documents consist of student reviews and discussions, which can vary in length and structure, a boundary-aware fixed-size chunking strategy allows us to preserve coherent units of information while ensuring that chunks are manageable for retrieval and generation. For RMP Reviews, it's document is first split into review boundaries using a consistent delimiter,"-0", preserving each review as a single chunk. For the Reddit thread comments and the Miscellany News article, we will also apply fixed-size chunking with a chunk size of 300 tokens and an overlap of 50 tokens but omitting the delimiters since these documents only contain a single coherent section. This approach allows us to capture the full sentiment and details of each review or discussion while still ensuring that chunks are manageable for retrieval and generation. The overlap of 50 tokens helps to mitigate the risk of splitting key information across chunk boundaries, which can be particularly important for reviews that may contain important context or sentiment that spans multiple sentences.
+**Reasoning:**  Given that these documents consist of student reviews and discussions, which can vary in length and structure, we apply recursive character splitting to preserve coherent units of information while keeping chunks manageable for retrieval and generation. The splitter uses a priority-ordered cascade of separators, paragraph breaks, line breaks, sentence-ending punctuation, then spaces, and falling back to finer splits only when a chunk still exceeds the size limit. Chunk size is set to [your CHUNK_SIZE] tokens and overlap to [your CHUNK_OVERLAP] tokens, measured using the all-MiniLM-L6-v2 tokenizer. This approach approximates boundary-aware chunking heuristically: it avoids splitting mid-sentence or mid-paragraph whenever possible. The overlap helps preserve context that might otherwise be severed at chunk edges, which is particularly relevant for reviews and discussions where sentiment or reasoning can span multiple sentences.
 ---
 
 ## Retrieval Approach
@@ -50,11 +50,11 @@
 
 | # | Question | Expected answer |
 |---|----------|-----------------|
-| 1 | Are Professor Hannah's lectures well-received by students? | Personal experience + RMP |
-| 2 | How is Professor Erickson perceived by students? | Personal experience + RMP |
-| 3 | What can I expect from CMPU 145? | Personal experience + Misc |
-| 4 | What do students say about the difficulty of CMPU 203 with Meireles? | RMP |
-| 5 | Which of these courses has the most project-heavy workload? | Personal experience + RMP |
+| 1 | Are Professor Hannah's lectures well-received by students? | Yes, Professor Hannah's lectures have widely positive reception and found that her teaching style is engaging and informative. |
+| 2 | How is Professor Erickson perceived by students? | Professor Erickson is generally perceived as a knowledgeable and approachable instructor who provides clear explanations and makes understanding the content digestible. |
+| 3 | What can I expect from CMPU 145? | Expect the lectures from CMPU145 to be engaging and informative as Professor Gommerstadt is very passionate about what she teaches. |
+| 4 | What do students say about the difficulty of CMPU 203 with Meireles? | Students generally find CMPU 203 with Meireles as it is a project-heavy course and ensuring that you frontload the work well early before a deadline is key to success. |
+| 5 | Which of these courses has the most project-heavy workload? | CMPU203 is often described as having the most project-heavy workload among the listed courses. Though, other CS courses may also have significant project components, the comments do not explicitly state this. |
 
 ---
 
