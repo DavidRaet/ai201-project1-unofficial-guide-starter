@@ -76,7 +76,7 @@ Chunk size: 256 tokens
 
 Overlap: 50 tokens 
 
-Why these choices fit your documents: Given that these documents consist of student reviews and discussions, which can vary in length and structure, a boundary-aware fixed-size chunking strategy allows us to preserve coherent units of information while ensuring that chunks are manageable for retrieval and generation. For RMP Reviews, it's document is first split into review boundaries using a consistent delimiter,"-0", preserving each review as a single chunk. For the Reddit thread comments and the Miscellany News article, we will also apply fixed-size chunking with a chunk size of 300 tokens and an overlap of 50 tokens but omitting the delimiters since these documents only contain a single coherent section. This approach allows us to capture the full sentiment and details of each review or discussion while still ensuring that chunks are manageable for retrieval and generation. The overlap of 50 tokens helps to mitigate the risk of splitting key information across chunk boundaries, which can be particularly important for reviews that may contain important context or sentiment that spans multiple sentences.
+Why these choices fit your documents: Given that these documents consist of student reviews and discussions, which can vary in length and structure, we apply recursive character splitting to preserve coherent units of information while keeping chunks manageable for retrieval and generation. The splitter uses a priority-ordered cascade of separators, paragraph breaks, line breaks, sentence-ending punctuation, then spaces, and falling back to finer splits only when a chunk still exceeds the size limit. Chunk size is set to [your CHUNK_SIZE] (256 tokens) tokens and overlap to [your CHUNK_OVERLAP] (50) tokens, measured using the all-MiniLM-L6-v2 tokenizer. This approach approximates boundary-aware chunking heuristically: it avoids splitting mid-sentence or mid-paragraph whenever possible. The overlap helps preserve context that might otherwise be severed at chunk edges, which is particularly relevant for reviews and discussions where sentiment or reasoning can span multiple sentences.
 
 Final chunk count: 43 chunks
  
@@ -187,7 +187,7 @@ CITATION RULE: Every claim you make must be cited inline using [Source N] notati
 SOURCE LIST RULE: At the end of every response, include a "Sources:" section that lists each source you cited, with its URL.
 
 REFUSAL RULE: If the provided sources do not contain enough information to answer the question, respond with EXACTLY the following sentence and nothing else:
-{REFUSAL_STRING}
+{REFUSAL_STRING} ("I don't have enough student-sourced information to answer that question reliably.")
 
 **How source attribution is surfaced in the response:**
 e.g
@@ -217,37 +217,6 @@ Sources:
 
 **Retrieval quality:** Relevant / Partially relevant / Off-target  
 **Response accuracy:** Accurate / Partially accurate / Inaccurate
-
-Retrieval Test Examples:
-
-Example 1:
-'Are Professor Anna's lectures for CMPU145 well-received by students?'
-  [1] (dist=0.3654) [Anna Gommerstadt] CMPU-145 - Comment #1: Anna's teaching/lecture style is effective and fun. Enoug...
-  [2] (dist=0.4431) [Anna Gommerstadt] CMPU-145- Comment #5: Had her for both 102 and 145, and she gives very engaging ...
-  [3] (dist=0.4619) [Jacob Erickson] CMPU-241 - Comment #3: Effective, engaging lectures and available to answer ques...
-  [4] (dist=0.5087) [Anna Gommerstadt] and my enjoyment of the lectures kept me on track with the course’s workload. He...
-  [5] (dist=0.5165) [Rui Meireles] CMPU-203 - Comment #2: Rui comes off as shy but he is very sweet and helpful. Le...
-
-  The query is specifically tied to Anna + CMPU145, so there is a strong correlation between the query and the chunks that were retrieved. 
-
-Example 2:
-
-'How is Professor Erickson perceived by students?'
-  [1] (dist=0.2799) [Jacob Erickson] CMPU-101- Comment #4: Professor Erickson is highly knowledgeable and manages the...
-  [2] (dist=0.5005) [Jacob Erickson] CMPU-241 - Comment #3: Effective, engaging lectures and available to answer ques...
-  [3] (dist=0.5071) [Peter Lemieszewski] CMPU-102 - Comment #2 : Peter is an amazing human being. He always came to class...
-  [4] (dist=0.5147) [Peter Lemieszewski] CMPU-102 - Comment #3 : Peter is an amazing guy. He is very hard working and ver...
-  [5] (dist=0.5189) [Peter Lemieszewski] CMPU102 - Comment #7 : Pete is a super nice and accessible professor. But he is ...
-
-The question was mainly about Professor Erickson, so the chunks that were surfaced had a close correlation to the query about Professor Erickson.
-
-Example 3:
-What do students say about the difficulty of CMPU 203 with Meireles?
-  [1] (dist=0.5931) [Peter Lemieszewski] CMPU-102 - Comment #9 : Not helpful at all...
-  [2] (dist=0.5937) [Rui Meireles] CMPU-203 - Comment #4: 10/10. A work-heavy course, but Meireles is an excellent ...
-  [3] (dist=0.6522) [Peter Lemieszewski] CMPU-102 - Comment #5: Very helpful outside of class but be prepared to do extra...
-  [4] (dist=0.6589) [Peter Lemieszewski] CMPU102 - Comment #6: Very little homework. Easy grader. Absolutely useless lect...
-  [5] (dist=0.6649) [Jonathan Gordon] CMPU-240 - Comment #2: Really really bad. I don't understand why some people dec...
 
 ---
 
@@ -315,7 +284,45 @@ Once implementation set in, I initially had a Boundary Aware Fixed-Sized Chunkin
 ---
 
 
-## Test 
+## Retrieval Tests
+
+
+Retrieval Test Examples:
+
+Example 1:
+'Are Professor Anna's lectures for CMPU145 well-received by students?'
+  [1] (dist=0.3654) [Anna Gommerstadt] CMPU-145 - Comment #1: Anna's teaching/lecture style is effective and fun. Enoug...
+  [2] (dist=0.4431) [Anna Gommerstadt] CMPU-145- Comment #5: Had her for both 102 and 145, and she gives very engaging ...
+  [3] (dist=0.4619) [Jacob Erickson] CMPU-241 - Comment #3: Effective, engaging lectures and available to answer ques...
+  [4] (dist=0.5087) [Anna Gommerstadt] and my enjoyment of the lectures kept me on track with the course’s workload. He...
+  [5] (dist=0.5165) [Rui Meireles] CMPU-203 - Comment #2: Rui comes off as shy but he is very sweet and helpful. Le...
+
+
+Chunks 1, 2, and 4 are directly sourced from Anna Gommerstadt's RMP reviews and the Miscellany article have both explicitly mentioned her lecture style for CMPU-145, which maps tightly to the query. Chunk 3 for example, (Erickson) surfaced likely because it shares the word "lectures" and similar positive phrasing, making it a false positive at the embedding level. The retrieval is largely on-target, with two off-topic results out of five.
+
+Example 2:
+
+'How is Professor Erickson perceived by students?'
+  [1] (dist=0.2799) [Jacob Erickson] CMPU-101- Comment #4: Professor Erickson is highly knowledgeable and manages the...
+  [2] (dist=0.5005) [Jacob Erickson] CMPU-241 - Comment #3: Effective, engaging lectures and available to answer ques...
+  [3] (dist=0.5071) [Peter Lemieszewski] CMPU-102 - Comment #2 : Peter is an amazing human being. He always came to class...
+  [4] (dist=0.5147) [Peter Lemieszewski] CMPU-102 - Comment #3 : Peter is an amazing guy. He is very hard working and ver...
+  [5] (dist=0.5189) [Peter Lemieszewski] CMPU102 - Comment #7 : Pete is a super nice and accessible professor. But he is ...
+
+Chunks 1 and 2 are directly from Erickson's RMP reviews and rank closest by cosine distance (0.28 and 0.50), confirming the embedding model correctly prioritized the named professor. Chunks 3, 4, and 5 are all Peter Lemieszewski reviews, which were retrieved likely because they share structural and tonal similarity to Erickson reviews (short, professor-focused, positive sentiment). This shows the model retrieved by semantic pattern as much as by named entity, which is a limitation worth noting.
+
+
+Example 3:
+What do students say about the difficulty of CMPU 203 with Meireles?
+  [1] (dist=0.5931) [Peter Lemieszewski] CMPU-102 - Comment #9 : Not helpful at all...
+  [2] (dist=0.5937) [Rui Meireles] CMPU-203 - Comment #4: 10/10. A work-heavy course, but Meireles is an excellent ...
+  [3] (dist=0.6522) [Peter Lemieszewski] CMPU-102 - Comment #5: Very helpful outside of class but be prepared to do extra...
+  [4] (dist=0.6589) [Peter Lemieszewski] CMPU102 - Comment #6: Very little homework. Easy grader. Absolutely useless lect...
+  [5] (dist=0.6649) [Jonathan Gordon] CMPU-240 - Comment #2: Really really bad. I don't understand why some people dec...
+
+
+Chunk 2 is the most relevant, directly referencing Meireles and CMPU-203's workload. However, chunks 1, 3, 4, and 5 are all Lemieszewski or Gordon reviews with no connection to the query. Additionally, the high cosine distances (0.59-0.66) confirm weak retrieval overall. This suggests the corpus has too few CMPU-203 chunks for the retrieval stage to consistently surface relevant results for this query.
+
 
      
      
