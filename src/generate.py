@@ -65,7 +65,6 @@ def generate_response(query: str, chunks: list[dict]) -> str:
     )
     return response.choices[0].message.content.strip()
 
-
 def main() -> None:
     from dotenv import load_dotenv
     load_dotenv()
